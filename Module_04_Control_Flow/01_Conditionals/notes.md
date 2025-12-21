@@ -299,7 +299,7 @@ These cause **logic bugs**, not syntax errors.
 
 ---
 
-## 15. Key Takeaways (FastBit Revision Style)
+## 15. Key Takeaways
 
 * Control flow changes execution order
 * `if`, `if–else`, `else if`, `switch` are core
