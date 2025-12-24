@@ -1,111 +1,129 @@
+# Embedded C Quick Cheatsheet
 
-# Embedded C Quick Cheatsheet (FastBit-Oriented)
-
-> Purpose:  
-> Open this file when stuck during embedded C coding → quick recall → resume work.
+> Use this when coding embedded C and you get stuck.
+> Not for learning. Only for recall.
 
 ---
 
 ## 1. Integer Data Types (Embedded View)
 
-| Data Type | Size (Bytes) | Range | Embedded Use Case |
-|----------|-------------|-------|-------------------|
-| char | 1 | -128 to 127 | ASCII, small signed data |
-| unsigned char | 1 | 0 to 255 | Sensors, flags, registers |
-| short | 2 | -32,768 to 32,767 | Small counters |
-| unsigned short | 2 | 0 to 65,535 | ADC values |
-| int | 2 or 4 | Compiler dependent | Avoid for portability |
-| unsigned int | 2 or 4 | Compiler dependent | Avoid in drivers |
-| long | 4 or 8 | Compiler dependent | MCU dependent |
-| long long | 8 | Fixed | Large counters |
+| Data Type | Size (Bytes) | Range |
+|----------|-------------|------|
+| char | 1 | -128 to 127 |
+| unsigned char | 1 | 0 to 255 |
+| short | 2 | -32,768 to 32,767 |
+| unsigned short | 2 | 0 to 65,535 |
+| int | 2 or 4 | Compiler dependent |
+| unsigned int | 2 or 4 | Compiler dependent |
+| long | 4 or 8 | Compiler dependent |
+| long long | 8 | Fixed |
 
-**Tip (Memory Hook):**  
-> `char`, `short`, `long long` → fixed  
-> `int`, `long` → compiler trap ⚠️
-
----
-
-## 2. Fixed-Width Types (`stdint.h`) — **USE THIS**
-
-| Type | Size | Why in Embedded |
-|----|----|----------------|
-| uint8_t | 1 byte | Exact register mapping |
-| int8_t | 1 byte | Signed sensor data |
-| uint16_t | 2 bytes | ADC, timers |
-| uint32_t | 4 bytes | Addresses, counters |
-| uint64_t | 8 bytes | Rare, heavy |
-
-**Rule:**  
-> Portable embedded code = `stdint.h` only
+**Embedded Rule:**  
+> Avoid `int` & `long` in drivers
 
 ---
 
-## 3. Format Specifiers (printf / scanf)
+## 2. Fixed Width Types (`stdint.h`) — MUST USE
 
-| Data Type | printf | scanf |
-|---------|--------|-------|
-| char | %c | %c |
-| signed int | %d | %d |
-| unsigned int | %u | %u |
-| short | %hd | %hd |
-| unsigned short | %hu | %hu |
-| long | %ld | %ld |
-| unsigned long | %lu | %lu |
-| long long | %lld | %lld |
-| unsigned long long | %llu | %llu |
+| Type | Size | Use |
+|----|----|----|
+| uint8_t | 1 | Registers, sensors |
+| int8_t | 1 | Signed data |
+| uint16_t | 2 | ADC, timers |
+| uint32_t | 4 | Addresses |
+| uint64_t | 8 | Large counters |
 
-**Embedded Warning:**  
-> Wrong specifier = garbage output or hard fault
+**Memory Hook:**  
+> Hardware = fixed width only
 
 ---
 
-## 4. Variables & Memory Lifetime
+## 3. Format Specifiers (Decimal / Hex / Octal)
 
-| Variable Type | Scope | Lifetime | Default |
-|-------------|------|---------|--------|
-| Local | Function | Until return | Garbage |
-| Global | Whole program | Program end | 0 |
-| static local | Function only | Program end | 0 |
-| static global | File only | Program end | 0 |
+### Signed / Unsigned
+
+| Data Type | Decimal | Hex | Octal |
+|---------|--------|-----|-------|
+| int | %d | %x | %o |
+| unsigned int | %u | %x | %o |
+| long | %ld | %lx | %lo |
+| unsigned long | %lu | %lx | %lo |
+| long long | %lld | %llx | %llo |
+| unsigned long long | %llu | %llx | %llo |
+
+---
+
+## 4. Compiler-Specific 64-bit Specifiers
+
+| Specifier | Meaning |
+|---------|--------|
+| %I64d | signed 64-bit |
+| %I64u | unsigned 64-bit |
+| %I64x | hex 64-bit |
+
+**Note:**  
+> Used mainly in Windows / specific toolchains
+
+---
+
+## 5. Character & ASCII
+
+| Type | Specifier |
+|----|----|
+| char | %c |
+| ASCII value | %d |
+
+**Hook:**  
+> `'A' = 65`
+
+---
+
+## 6. Variable Lifetime & Scope
+
+| Type | Scope | Lifetime |
+|----|------|--------|
+| Local | Function | Till return |
+| Global | Program | Full |
+| static local | Function | Full |
+| static global | File | Full |
 
 **Mnemonic:**  
-> Local dies, Static survives
+> Local dies, static lives
 
 ---
 
-## 5. Storage Classes (Critical for Embedded)
+## 7. Storage Classes (Embedded Critical)
 
 ### `static`
-| Usage | Effect |
-|-----|-------|
-| Inside function | Value retained between calls |
-| Global | File-level visibility |
-
-**Use Case:**  
-> Preserve state machine variables
+| Use | Effect |
+|----|------|
+| Function | Retains value |
+| Global | File-private |
 
 ### `extern`
-| Purpose |
-|-------|
-| Access global variable across files |
+| Use |
+|----|
+| Access global across files |
 
 **Rule:**  
-> Define once, `extern` everywhere else
+> Define once, extern elsewhere
 
 ---
 
-## 6. Pointer Essentials (Embedded Survival)
+## 8. Pointer Fundamentals
 
-### Pointer Facts
-| Property | Value |
-|-------|------|
+| Fact | Value |
+|----|-----|
 | Pointer size | 8 bytes (64-bit host) |
-| Controlled by | CPU architecture |
-| NOT controlled by | Pointer data type |
+| Depends on | Architecture |
+| NOT depends on | Pointer type |
 
-### Pointer Type Effect
-| Pointer Type | Read Size |
-|------------|----------|
+---
+
+## 9. Pointer Data Type Effect
+
+| Pointer Type | Read / Write Size |
+|------------|------------------|
 | char* | 1 byte |
 | int* | 4 bytes |
 | long long* | 8 bytes |
@@ -115,42 +133,43 @@
 
 ---
 
-## 7. Pointer Operators
+## 10. Pointer Operations (VERY IMPORTANT)
 
-| Operator | Meaning |
-|--------|--------|
-| & | Address of |
-| * | Value at address |
-
+### Read
 ```c
-char data = 10;
-char *p = &data;
-*p = 20;   // writes to data
+data = *ptr;
 ````
 
----
+### Write
 
-## 8. Pointer Arithmetic (Very Important)
+```c
+*ptr = 0x55;
+```
 
-| Pointer Type | p + 1 jumps |
-| ------------ | ----------- |
-| char*        | +1 byte     |
-| int*         | +4 bytes    |
-| long long*   | +8 bytes    |
+### Increment
+
+```c
+ptr = ptr + 1;
+```
+
+| Pointer Type | Jump |
+| ------------ | ---- |
+| char*        | +1   |
+| int*         | +4   |
+| long long*   | +8   |
 
 **Bug Pattern:**
 
-> Wrong pointer type → wrong memory read/write
+> Wrong pointer type = memory corruption
 
 ---
 
-## 9. Address Storage & Casting
+## 11. Address & Casting
 
-| Scenario                  | Required      |
-| ------------------------- | ------------- |
-| Store address in variable | Cast needed   |
-| Pointer → integer         | Explicit cast |
-| Integer → pointer         | Dangerous ⚠️  |
+| Operation         | Safe?      |
+| ----------------- | ---------- |
+| pointer → integer | Needs cast |
+| integer → pointer | Dangerous  |
 
 ```c
 unsigned long addr = (unsigned long)&var;
@@ -158,73 +177,74 @@ unsigned long addr = (unsigned long)&var;
 
 ---
 
-## 10. `scanf` / `getchar` Rules
+## 12. scanf / getchar Rules
 
-| Function | Needs `&`? | Notes            |
-| -------- | ---------- | ---------------- |
-| scanf    | YES        | Writes to memory |
-| getchar  | NO         | Returns ASCII    |
+| Function | Needs `&` |
+| -------- | --------- |
+| scanf    | YES       |
+| getchar  | NO        |
 
-**Buffer Trap:**
+**Trap:**
 
-> `scanf` leaves `\n` → next input breaks
-
----
-
-## 11. ASCII Facts (Embedded Relevant)
-
-| Fact        | Value  |
-| ----------- | ------ |
-| ASCII bits  | 7      |
-| ASCII range | 0–127  |
-| char stores | Number |
-
-**Memory Hook:**
-
-> `'A'` = 65
+> `scanf` leaves `\n` in buffer
 
 ---
 
-## 12. sizeof Operator
+## 13. Bitwise Operators (MOST IMPORTANT)
 
-| Usage        | Notes              |
-| ------------ | ------------------ |
-| sizeof(type) | Compile-time       |
-| sizeof(var)  | Compiler dependent |
+| Operator | Name        | Embedded Use  |          |
+| -------- | ----------- | ------------- | -------- |
+| &        | AND         | Mask bits     |          |
+|          |             | OR            | Set bits |
+| ^        | XOR         | Toggle        |          |
+| ~        | NOT         | Invert        |          |
+| <<       | Left shift  | Multiply by 2 |          |
+| >>       | Right shift | Divide by 2   |          |
+
+---
+
+## 14. Bitwise vs Logical
+
+| Bitwise | Logical |   |   |   |
+| ------- | ------- | - | - | - |
+| &       | &&      |   |   |   |
+|         |         |   |   |   |
+| ^       | ❌       |   |   |   |
+| ~       | !       |   |   |   |
 
 **Rule:**
 
-> Always verify size on target MCU
+> Registers → bitwise
+> Conditions → logical
 
 ---
 
-## 13. Common Embedded Bugs → Fix
+## 15. Common Embedded Bugs
 
-| Symptom          | Root Cause         | Fix            |
-| ---------------- | ------------------ | -------------- |
-| Value resets     | Local variable     | Use static     |
-| Garbage print    | Wrong format       | Fix specifier  |
-| Corrupt memory   | Wrong pointer type | Fix pointer    |
-| Overflow         | Wrong data type    | Use uintX_t    |
-| Multi-file error | Missing extern     | Declare extern |
-
----
-
-## 14. Long-Term Memory Anchors
-
-* **“Pointer size is fixed, pointer behavior is typed”**
-* **“Local dies, static lives”**
-* **“uint8_t beats unsigned char”**
-* **“Wrong format specifier = silent bug”**
-* **“If it touches hardware, use fixed-width types”**
+| Symptom        | Cause           | Fix         |
+| -------------- | --------------- | ----------- |
+| Wrong hex      | %d used         | Use %x      |
+| Reset value    | Local var       | static      |
+| Garbage        | Wrong specifier | Fix format  |
+| Corrupt memory | Wrong pointer   | Fix type    |
+| Wrong register | Logical ops     | Use bitwise |
 
 ---
 
-## 15. Embedded Coding Checklist (Before Debugging)
+## 16. Long-Term Memory Hooks
 
-* [ ] Correct data type?
-* [ ] Correct pointer type?
-* [ ] Correct storage class?
+* **“Pointer type controls jump size”**
+* **“Registers speak hex”**
+* **“static remembers, local forgets”**
+* **“Bitwise touches hardware, logical touches logic”**
+* **“uintX_t is portable, int is risky”**
+
+---
+
+## 17. Embedded Debug Checklist
+
 * [ ] Correct format specifier?
-* [ ] Fixed-width integer used?
-* [ ] Buffer cleaned?
+* [ ] Fixed-width integer?
+* [ ] Correct pointer type?
+* [ ] Bitwise used for registers?
+* [ ] static where state needed?
